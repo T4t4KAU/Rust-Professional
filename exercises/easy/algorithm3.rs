@@ -4,9 +4,22 @@
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
 
+fn main() {}
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+
+fn sort<T>(array: &mut [T])
+where
+    T: PartialOrd + Clone,
+{
+    for i in 1..array.len() {
+        let x = array[i].clone();
+        let mut j = (i - 1) as isize;
+        while j >= 0 && array[j as usize] > x {
+            array.swap(j as usize, (j + 1) as usize);
+            j -= 1;
+        }
+        array[(j + 1) as usize] = x;
+    }
 }
 #[cfg(test)]
 mod tests {
