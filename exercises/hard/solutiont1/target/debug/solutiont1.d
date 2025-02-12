@@ -1,1 +1,0 @@
-/Users/huangwenxuan/Documents/codes/Rust-Professional/exercises/hard/solutiont1/target/debug/solutiont1: /Users/huangwenxuan/Documents/codes/Rust-Professional/exercises/hard/solutiont1/src/conjecture.rs /Users/huangwenxuan/Documents/codes/Rust-Professional/exercises/hard/solutiont1/src/main.rs

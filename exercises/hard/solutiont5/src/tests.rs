@@ -29,6 +29,10 @@ mod tests {
             let result = retire_time(*time, *tp);
             let duration = start.elapsed();
 
+            if result != *expected {
+                println!("input: {} {} result: {}, expected: {}", time, tp, result, expected);
+            }
+
             // 时间超0.2s，判定不合格
             if duration <= Duration::from_millis(200) && result == *expected {
                 total_score += 10.0;
