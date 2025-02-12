@@ -4,4 +4,6 @@
 mod calc_time;
 
 fn main() {
+    let res = calc_time::time_info("2025-01-18");
+    println!("{:?}", res);
 }
