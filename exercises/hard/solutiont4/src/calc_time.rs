@@ -55,20 +55,90 @@ fn day_of_week(year: i32, month: i32, day: i32) -> i32 {
         w
     }
 }
+fn days_since_epoch(year: i32, month: i32, day: i32) -> i32 {
+    let mut days = 0;
 
-// 计算 ISO 8601 标准的周数
-fn week_of_year(year: i32, month: i32, day: i32) -> i32 {
-    let first_weekday = day_of_week(year, 1, 1);
-    let day_of_year = day_of_year(year, month, day);
-    let week = (day_of_year + first_weekday - 1) / 7;
-    if first_weekday > 4 {
-        week + 1
+    for y in 1..year {
+        days += if is_leap_year(y) { 366 } else { 365 };
+    }
+
+    let days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    for m in 1..month {
+        days += days_in_month[(m - 1) as usize];
+        if m == 2 && is_leap_year(year) {
+
+            days += 1;
+        }
+    }
+    days + day
+}
+
+fn day_difference(year1: i32, month1: i32, day1: i32, year2: i32, month2: i32, day2: i32) -> i32 {
+    let days1 = days_since_epoch(year1, month1, day1);
+    let days2 = days_since_epoch(year2, month2, day2);
+    // 计算两个日期总天数的差值的绝对值
+    (days2 - days1).abs()
+}
+
+fn first_monday_of_year(year: i32) -> (i32, i32, i32) {
+    let mut first_thursday_day = 1;
+
+    for i in 0..6 {
+        let days = day_of_week(year, 1, 1 + i);
+
+        if days == 4 {
+            first_thursday_day = 1 + i;
+            break;
+        }
+    }
+
+    if first_thursday_day <= 3 {
+        (year - 1, 12 ,31 - (3 - first_thursday_day))
     } else {
-        week
+        (year, 1, first_thursday_day - 3)
     }
 }
 
-// 简单模拟计算距离过年（正月初一）的天数
+fn second_monday_of_year(year: i32) -> (i32, i32, i32) {
+    let mut first_thursday_day = 1;
+
+    for i in 0..6 {
+        let days = day_of_week(year, 1, 1 + i);
+
+        if days == 4 {
+            first_thursday_day = 1 + i;
+            break;
+        }
+    }
+
+    (year, 1, first_thursday_day + 4)
+}
+
+
+// ISO 8601
+fn week_of_year(year: i32, month: i32, day: i32) -> i32 {
+    let (first_monday_year, first_monday_month, first_monday_day) = first_monday_of_year(year);
+    let day_diff = day_difference(year, month, day, first_monday_year, first_monday_month, first_monday_day);
+    let week_diff = day_diff / 7;
+
+    // 两个特殊情况
+    if month == 12 && day >= 29 && day <= 31 {
+        let (next_monday_year, next_monday_month, next_monday_day) = first_monday_of_year(year + 1);
+        if next_monday_month == 12 && next_monday_day <= day {
+            return 1;
+        }
+    }
+
+    if month == 1 && day >= 1 && day <= 4 {
+        if first_monday_month == 1 && first_monday_day > day {
+            let (last_monday_year, last_monday_month, last_monday_day) = first_monday_of_year(year - 1);
+            1 + day_difference(year, month, day, last_monday_year, last_monday_month, last_monday_day) / 7;
+        }
+    }
+
+    1 + week_diff
+}
+
 fn days_to_chinese_new_year(year: i32, month: i32, day: i32) -> i32 {
     let current_day = day_of_year(year, month, day);
     let new_year_day = day_of_year(year, 1, 29);
@@ -81,7 +151,7 @@ fn days_to_chinese_new_year(year: i32, month: i32, day: i32) -> i32 {
         days_in_current_year - current_day + next_new_year_day
     }
 }
-// 简单模拟计算距离下一次 A 股开盘的天数，假设周一到周五开盘
+
 fn days_to_next_a_share_opening(year: i32, month: i32, day: i32) -> i32 {
     let new_year_day_open = day_of_year(year, 1, 2);
     let spring_year_day_open = day_of_year(year, 2, 5);
@@ -89,33 +159,40 @@ fn days_to_next_a_share_opening(year: i32, month: i32, day: i32) -> i32 {
     let labor_day_open = day_of_year(year, 5, 6);
     let zongzi_day_open = day_of_year(year, 6, 3);
     let autumn_day_open = day_of_year(year, 10, 9);
+    let next_new_year_day_open = day_of_year(year+1, 1, 1);
 
+    // 处理节假日
     if month == 1 && day == 1 {
-        return new_year_day_open - day_of_year(year, month, day);
+        return new_year_day_open - day_of_year(year, month, day) - 1;
     }
     if (month == 1 && 28 <= day && day <= 31) || (month == 2 && 1 <= day && day <= 4) {
-        return spring_year_day_open - day_of_year(year, month, day);
+        return spring_year_day_open - day_of_year(year, month, day) - 1;
     }
     if month == 4 && 4 <= day && day <= 6 {
-        return qingming_day_open - day_of_year(year, month, day);
+        return qingming_day_open - day_of_year(year, month, day) - 1;
     }
     if month == 5 && 1 <= day && day <= 5 {
-        return labor_day_open - day_of_year(year, month, day);
+        return labor_day_open - day_of_year(year, month, day) - 1;
     }
     if (month == 5 && day == 31) || (month == 6 && 1 <= day && day <= 2) {
-        return zongzi_day_open - day_of_year(year, month, day);
+        return zongzi_day_open - day_of_year(year, month, day) - 1;
     }
 
     if month == 10 && 1 <= day && day <= 8 {
-        return autumn_day_open - day_of_year(year, month, day);
+        return autumn_day_open - day_of_year(year, month, day) - 1;
+    }
+
+    if month == 12 && day == 31 {
+        let days = if is_leap_year(year) { 366 } else { 365 };
+        return next_new_year_day_open - day_of_year(year, month, day) + days;
     }
 
     let weekday = day_of_week(year, month, day);
     match weekday {
-        7 => 1, // 周日，距离周一开盘 1 天
-        5 => 3, // 周五，距离下周一开盘 3 天
+        7 => 0, // 周日
+        5 => 2, // 周五，距离下周一开盘 2 天
         6 => 1, // 周六，距离周一开盘 2 天
-        _ => 0, // 周一到周四，距离下一天开盘 1 天
+        _ => 0, // 周一到周四
     }
 }
 fn calculate_time(date_str: &str) -> String {
